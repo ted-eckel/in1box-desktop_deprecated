@@ -3,6 +3,7 @@ import { convertToRaw, convertFromRaw } from 'draft-js'
 import { readFile, writeFile, readdir } from 'fs'
 import sanitize from 'sanitize-filename'
 import trash from 'trash'
+import moment from 'moment'
 import { dispatch } from '../dispatch'
 import ActionType from '../../actions/ActionType'
 
@@ -56,7 +57,9 @@ export const contentConvert = content => (
 export const createOrUpdateNote = (note, meta, dir, newTags = [], path) => {
   const fileName = (
     note.name ? note.name : (
-      note.title ? `${sanitize(note.title)}.html` : `${Date.now().toString()}.html`
+      note.title ? `${sanitize(note.title)}.html` : (
+        `${moment().format('YYYY-MM-DD[T]H_mm_ss.SSSZ').replace(/\:/g, '_')}.html`
+      )
     )
   )
 
@@ -244,7 +247,9 @@ export const createNote = (note, meta, dir, newTags = [], path) => {
   return readdirAsync(dir)
   .then(data => {
     const date = new Date(Date.now())
-    const name = note.title ? `${sanitize(note.title)}` : `${date.toISOString()}`
+    const name = note.title ? `${sanitize(note.title)}` : (
+      `${moment().format('YYYY-MM-DD[T]H_mm_ss.SSSZ').replace(/\:/g, '_')}`
+    )
     const fileName = findNextName(name, data)
 
     if (newTags.length) {
