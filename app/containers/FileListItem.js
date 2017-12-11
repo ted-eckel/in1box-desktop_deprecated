@@ -373,27 +373,46 @@ class FileListItem extends Component {
 
     const colorState = this.state.color
 
-    const title = (item.meta && item.meta.title) ? (
-      item.meta.title
-    ) : (
-      (item.name.slice(-5) === '.html') ? item.name.slice(0, -5) : item.name
-    )
+    // const title = (item.meta && item.meta.title) ? (
+    //   item.meta.title
+    // ) : (
+    //   (item.name.slice(-5) === '.html') ? item.name.slice(0, -5) : item.name
+    // )
+
+    const title = () => {
+      if (item.meta && item.meta.title !== '') {
+        return item.meta.title
+      } else if (item.meta && item.meta.title === '') {
+        return null
+      } else if (item.meta) {
+        return null
+      } else if (item.name.slice(-5) === '.html') {
+        return item.name.slice(0, -5)
+      } else {
+        return item.name
+      }
+    }
 
     return (
       <div style={{ margin: '8px', visibility: visibilityFunc() }} className={name()}>
         <Paper style={{ width: '240px', padding: '12px 0', backgroundColor: colorHex(colorState) }}>
           <div style={{ cursor: 'default' }} onClick={toggleCreateNoteModal}>
-            <div style={{
-              display: 'inline-block',
-              fontFamily: "'Roboto Condensed',arial,sans-serif",
-              fontSize: '17px',
-              fontWeight: 'bold',
-              lineHeight: '23px',
-              minHeight: '27px',
-              padding: '2px 15px 0'
-            }}>
-              {title}
-            </div>
+            { title() ? (
+              <div style={{
+                display: 'inline-block',
+                fontFamily: "'Roboto Condensed',arial,sans-serif",
+                fontSize: '17px',
+                fontWeight: 'bold',
+                lineHeight: '23px',
+                minHeight: '27px',
+                padding: '2px 15px 0'
+              }}>
+                {title()}
+              </div>
+            ) : (
+              <div style={{ display: 'none'}}></div>
+            )}
+
             <div style={{
               fontFamily: "'Roboto Slab','Times New Roman',serif",
               padding: '0 15px 15px',
