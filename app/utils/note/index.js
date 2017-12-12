@@ -1,6 +1,6 @@
 import { convertFromHTML, convertToHTML } from 'draft-convert'
 import { convertToRaw, convertFromRaw } from 'draft-js'
-import { readFile, writeFile, readdir } from 'fs'
+import { readFile, writeFile, readdir, stat } from 'fs'
 import sanitize from 'sanitize-filename'
 import trash from 'trash'
 import moment from 'moment'
@@ -54,14 +54,15 @@ export const contentConvert = content => (
   })(content)
 )
 
+const statAsync = filePath => new Promise((resolve, reject) => {
+  stat(filePath, (err, data) => {
+    if (err) return reject(err)
+    resolve(Date.parse(data.birthtime))
+  })
+})
+
 export const createOrUpdateNote = (note, meta, dir, newTags = [], path) => {
-  const fileName = (
-    note.name ? note.name : (
-      note.title ? `${sanitize(note.title)}.html` : (
-        `${moment().format('YYYY-MM-DD[T]H_mm_ss.SSSZ').replace(/\:/g, '_')}.html`
-      )
-    )
-  )
+  const fileName = note.name
 
   const successType = (
     note.name ?
@@ -94,13 +95,14 @@ export const createOrUpdateNote = (note, meta, dir, newTags = [], path) => {
     .then(obj => {
       const newMeta = meta
       newMeta.tagIDs = meta.tagIDs.concat(obj.newTagIds)
-      return writeFileAsync(`${dir}${fileName}.html`, note.content)
-      .then(() => writeJsonAsync(`${dir}.${fileName}.html.json`, newMeta))
-      .then(() => dispatch({
+      return writeFileAsync(`${dir}${fileName}`, note.content)
+      .then(() => writeJsonAsync(`${dir}.${fileName}.json`, newMeta))
+      .then(() => statAsync(`${dir}${fileName}`))
+      .then(date => dispatch({
         type: successType,
         file: {
           path: `${dir}${fileName}`,
-          date: Date.now(),
+          date,
           folder: dir,
           meta: newMeta,
           name: fileName,
@@ -112,11 +114,12 @@ export const createOrUpdateNote = (note, meta, dir, newTags = [], path) => {
 
   return writeFileAsync(`${dir}${fileName}`, note.content)
   .then(() => writeJsonAsync(`${dir}.${fileName}.json`, meta))
-  .then(() => dispatch({
+  .then(() => statAsync(`${dir}${fileName}`))
+  .then(date => dispatch({
     type: successType,
     file: {
       path: `${dir}${fileName}`,
-      date: Date.now(),
+      date,
       folder: dir,
       meta,
       name: fileName,
@@ -279,6 +282,7 @@ export const createNote = (note, meta, dir, newTags = [], path) => {
         newMeta.tagIDs = meta.tagIDs.concat(obj.newTagIds)
         return writeFileAsync(`${dir}${fileName}`, note.content)
         .then(() => writeJsonAsync(`${dir}.${fileName}.json`, newMeta))
+        .then()
         .then(() => dispatch({
           type: ActionType.App.Notes.CREATE_NOTE_SUCCESS,
           file: {
