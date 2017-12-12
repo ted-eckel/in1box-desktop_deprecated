@@ -7,7 +7,7 @@ export const requestFiles = (
   q = "mimeType != 'application/vnd.google-apps.folder' and trashed = false",
   fields = 'nextPageToken, files',
   orderBy = 'modifiedTime desc',
-  spaces = 'drive,photos',
+  spaces = 'drive',
   pageSize = 20
 ) => (dispatch, getState) => {
   const { fileListByQuery } = getState().drive
